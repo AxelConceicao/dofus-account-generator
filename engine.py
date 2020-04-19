@@ -1,45 +1,60 @@
 import sys
-import requests
-from src import proxy, browser
+from src import proxy, dofus, tempmail, misc
 
 class Engine:
-    browser = None
-    file = ''
-    nb = 0
+    def __init__(self):
+        self.tempmail = tempmail.Tempmail()
+        self.dofus = dofus.Dofus()
+        
+    def saveAccount(self, account):
+        misc.sPrint('account \'' + account + '\' created')
+        with open('accounts.txt', 'a') as file:
+            file.write(account + '\n')
+    
+    def createAccount(self, proxy = None):
+        if self.dofus.start(proxy) is None : return None
+        email = self.tempmail.getEmailAdress()
+        if email is None : return None
+        account = self.dofus.register(email)
+        if account is None : return None
+        url = self.tempmail.getConfirmationEmail()
+        if url is None : return None
+        if self.dofus.chooseNickname(url) is None : return None
+        return account
 
-    def __init__(self, file = 'accounts.txt', nb = 1):
-        self.file = file
-        self.nb = nb
-        self.browser = browser.Browser()
-
-    def run(self):
-        self.browser.runTempmail()
-        while self.nb != 0:
-            self.browser.runDofus(None)
-            creds = self.browser.submitForm(self.browser.getMailAdress())
-            if creds is not None:
-                url = self.browser.getConfirmationMail()
-                self.browser.setPseudo(url)
-                self.nb = self.nb - 1
-        return
-        self.browser.runTempmail()
-        while self.nb != 0:
-            myProxy = proxy.getOnlineProxy()
-            if myProxy and self.browser.runDofus(myProxy):
-                creds = self.browser.submitForm(self.browser.getMailAdress())
-                if creds is not None:
-                    url = self.browser.getConfirmationMail()
-                    self.browser.setPseudo(url)
-                    self.nb = self.nb - 1
+    def generator(self):
+        success = 0
+        self.tempmail.start()
+        while True:
+            account = self.createAccount()
+            if account is None : break        
+            self.dofus.closeBrowser()
+            if account is not None:
+                self.saveAccount(account)
+                success += 1
+                if success == 4 : break
+                self.tempmail.deleteEmail()
+            # else:
+            #     break
+        self.tempmail.closeBrowser()
+        
+    def generatorProxylist(self, filename):
+        self.tempmail.start()
+        for myProxy in proxy.getLocalProxy(filename):
+            print('Trying with ' + myProxy)
+            if myProxy is not None:
+                account = self.createAccount(myProxy)
+                self.dofus.closeBrowser()
+                if account is not None:
+                    self.saveAccount(account)
+                    self.tempmail.deleteEmail()
+                    print('Keep trying with ' + myProxy)
+                    self.runWithProxy(myProxy)
+        self.tempmail.closeBrowser()
 
 if __name__ == "__main__":
-    filename = None
-    nb = None
-    # if (len(sys.argv) != 3):
-    #     print('python3 engine.py [file] [nb]')
-    #     exit(1)
-    # filename = sys.argv[1]
-    # nb = sys.argv[2]
-    Engine().run()
-    # with open(filename, 'a') as w:
+    if '--proxy' in sys.argv and len(sys.argv) >= 3:
+        Engine().generatorProxylist(sys.argv[2])
+    else:
+        Engine().generator()
     exit(0)
