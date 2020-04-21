@@ -1,3 +1,4 @@
+import os
 import sys
 import json
 import string
@@ -18,3 +19,9 @@ def random_alphaNumeric_string(lettersCount, digitsCount):
     random.shuffle(sampleList)
     finalString = ''.join(sampleList)
     return finalString
+
+def isFileExist(file):
+    if not os.path.isfile(file): 
+        ePrint("No such file : " + file)
+        exit(1)
+    return True
