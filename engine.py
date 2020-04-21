@@ -34,27 +34,49 @@ class Engine:
                 success += 1
                 if success == 4 : break
                 self.tempmail.deleteEmail()
-            # else:
-            #     break
         self.tempmail.closeBrowser()
         
-    def generatorProxylist(self, filename):
+    def generatorLocalProxy(self, filename):
         self.tempmail.start()
         for myProxy in proxy.getLocalProxy(filename):
             print('Trying with ' + myProxy)
-            if myProxy is not None:
+            account = self.createAccount(myProxy)
+            self.dofus.closeBrowser()
+            while account is not None:
+                self.saveAccount(account)
+                self.tempmail.deleteEmail()
+                print('Keep trying with ' + myProxy)
+                account = None
                 account = self.createAccount(myProxy)
                 self.dofus.closeBrowser()
-                if account is not None:
-                    self.saveAccount(account)
-                    self.tempmail.deleteEmail()
-                    print('Keep trying with ' + myProxy)
-                    self.runWithProxy(myProxy)
+        self.tempmail.closeBrowser()
+
+    def generatorOnlineProxy(self):
+        self.tempmail.start()
+        while True:
+            myProxy = None
+            while myProxy is None:
+                myProxy = proxy.getOnlineProxy()
+            print('Trying with ' + myProxy)
+            account = self.createAccount(myProxy)
+            self.dofus.closeBrowser()
+            while account is not None:
+                self.saveAccount(account)
+                self.tempmail.deleteEmail()
+                print('Keep trying with ' + myProxy)
+                account = None
+                account = self.createAccount(myProxy)
+                self.dofus.closeBrowser()
         self.tempmail.closeBrowser()
 
 if __name__ == "__main__":
-    if '--proxy' in sys.argv and len(sys.argv) >= 3:
-        Engine().generatorProxylist(sys.argv[2])
-    else:
-        Engine().generator()
+    for i, v in enumerate(sys.argv):
+        if ('--local-proxy' == v or '-l' == v) and len(sys.argv) > i + 1:
+            if misc.isFileExist(sys.argv[i + 1]):
+                Engine().generatorLocalProxy(sys.argv[2])
+                exit(0)
+        if '--online-proxy' == v or '-o' == v:
+            Engine().generatorOnlineProxy()
+            exit(0)
+    Engine().generator()
     exit(0)
