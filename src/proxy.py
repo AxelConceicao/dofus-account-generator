@@ -3,6 +3,7 @@ import requests
 import urllib.request
 import socket
 import urllib.error
+from src import misc
 
 def is_bad_proxy(pip):    
     try:
@@ -21,12 +22,24 @@ def is_bad_proxy(pip):
     return False
 
 def getOnlineProxy():
-    url = 'http://pubproxy.com/api/proxy?api=cDhCQVlKaGlTWXNlRXpLMmxYOHZDZz09&type=https'
+    url = 'http://pubproxy.com/api/proxy'
     response = requests.get(url)
-    currentProxy = json.loads(response.text)['data'][0]['ipPort']
+    try:
+        currentProxy = json.loads(response.text)['data'][0]['ipPort']
+    except:
+        print(response.text)
+        misc.ePrint('API may be dead ?')
+        exit(1)
     if is_bad_proxy(currentProxy):
         print("Bad Proxy %s" % (currentProxy))
         return None
     else:
         print("%s is working" % (currentProxy))
         return currentProxy
+    
+def getLocalProxy(filename):
+    proxy_list = []
+    with open(filename, 'r') as file:
+        for line in file.readlines():
+            proxy_list.append(line.strip('\n'))
+    return proxy_list
