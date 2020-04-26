@@ -40,6 +40,8 @@ class Engine:
         self.tempmail.start()
         for myProxy in proxy.getLocalProxy(filename):
             print('Trying with ' + myProxy)
+            if proxy.is_bad_proxy(myProxy):
+                continue
             account = self.createAccount(myProxy)
             self.dofus.closeBrowser()
             while account is not None:
@@ -57,7 +59,6 @@ class Engine:
             myProxy = None
             while myProxy is None:
                 myProxy = proxy.getOnlineProxy()
-            print('Trying with ' + myProxy)
             account = self.createAccount(myProxy)
             self.dofus.closeBrowser()
             while account is not None:
