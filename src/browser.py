@@ -2,6 +2,7 @@ import sys
 import json
 import time
 import random
+import platform
 import pyperclip
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -37,7 +38,11 @@ class Browser:
             opt = webdriver.FirefoxOptions()
             opt.headless = headless
             firefox_capabilities = self.handleFirefoxCapabilities(strategy, proxy)
-            self.driver = webdriver.Firefox(executable_path='./geckodriver', capabilities=firefox_capabilities, firefox_options=opt)
+            if platform.architecture()[0] == '32bit':
+                bin_path = './geckodriver-linux32'
+            else:
+                bin_path = './geckodriver-linux64'
+            self.driver = webdriver.Firefox(executable_path=bin_path, capabilities=firefox_capabilities, firefox_options=opt)
         except Exception as e:
             print(e, end='')
             misc.ePrint('failed to launch Firefox Browser')
