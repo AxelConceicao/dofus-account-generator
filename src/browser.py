@@ -16,6 +16,7 @@ from selenium.webdriver.common.proxy import Proxy, ProxyType
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 from src import misc
+import undetected_chromedriver as uc
 
 class Browser:
     def __init__(self):
@@ -42,7 +43,9 @@ class Browser:
                 bin_path = './geckodriver-linux32'
             else:
                 bin_path = './geckodriver-linux64'
-            self.driver = webdriver.Firefox(executable_path=bin_path, capabilities=firefox_capabilities, firefox_options=opt)
+                
+            chrome_options = ChromeOptions()
+            self.driver =  uc.Chrome(use_subprocess=True, options=chrome_options)
         except Exception as e:
             print(e, end='')
             misc.ePrint('failed to launch Firefox Browser')
