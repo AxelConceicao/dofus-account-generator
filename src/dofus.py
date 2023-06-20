@@ -4,6 +4,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from src import misc, browser
+import undetected_chromedriver as uc
+
 
 class Dofus(browser.Browser):
     def __init__(self):
